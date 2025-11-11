@@ -588,18 +588,16 @@ async function saveRecordedRoute() {
   
   console.log('ルート保存成功:', data);
   
-  // モーダルを閉じる
-  const modalElement = document.querySelector('.fixed');
-  if (modalElement) {
-    modalElement.remove();
-  }
+  // 全てのモーダルを閉じる
+  const modals = document.querySelectorAll('.fixed');
+  modals.forEach(modal => modal.remove());
   
-  // ホーム画面に遷移（alertの前に実行）
+  // ホーム画面に遷移
   loadView('home');
   
   // 遷移後に成功メッセージを表示
   setTimeout(() => {
-    alert('ルートを保存しました！');
+    alert('ルートを保存しました！ホーム画面に保存したルートが表示されています。');
   }, 300);
 }
 

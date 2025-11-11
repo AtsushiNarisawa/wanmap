@@ -251,8 +251,25 @@ app.get('/', (c) => {
         <!-- Axios -->
         <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
         
-        <!-- App JS -->
+        <!-- カスタムJS -->
+        <script src="/static/js/supabase-client.js"></script>
+        <script src="/static/js/map-manager.js"></script>
         <script src="/static/app.js"></script>
+        
+        <!-- Service Worker登録 -->
+        <script>
+          if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+              navigator.serviceWorker.register('/service-worker.js')
+                .then((registration) => {
+                  console.log('SW registered:', registration);
+                })
+                .catch((error) => {
+                  console.error('SW registration failed:', error);
+                });
+            });
+          }
+        </script>
     </body>
     </html>
   `)

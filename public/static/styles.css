@@ -1,228 +1,254 @@
 /* WanMap カスタムスタイル */
 
+/* 地図コンテナ */
+#map-container {
+  width: 100%;
+  height: calc(100vh - 8rem); /* ナビゲーションバーとボトムバーを除く */
+  position: relative;
+}
+
+/* Leaflet地図のスタイル調整 */
+.leaflet-container {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* カスタムマーカースタイル */
+.custom-marker {
+  background: transparent;
+  border: none;
+}
+
 /* ローディングアニメーション */
-@keyframes fadeOut {
-  to {
-    opacity: 0;
-    visibility: hidden;
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
   }
 }
 
-#loading.hidden {
-  animation: fadeOut 0.5s ease-out forwards;
+.animate-bounce {
+  animation: bounce 1s infinite;
 }
 
-/* マップコンテナ */
-.map-container {
-  width: 100%;
-  height: calc(100vh - 8rem);
-  min-height: 400px;
+/* ボタンのホバー効果 */
+.btn-primary {
+  @apply bg-green-500 text-white px-6 py-3 rounded-full font-semibold shadow-lg hover:bg-green-600 transition-all duration-300 active:scale-95;
 }
 
-/* ルートカード */
+.btn-secondary {
+  @apply bg-gray-100 text-gray-700 px-6 py-3 rounded-full font-semibold hover:bg-gray-200 transition-all duration-300 active:scale-95;
+}
+
+.btn-danger {
+  @apply bg-red-500 text-white px-6 py-3 rounded-full font-semibold shadow-lg hover:bg-red-600 transition-all duration-300 active:scale-95;
+}
+
+/* カードスタイル */
 .route-card {
-  transition: transform 0.2s, box-shadow 0.2s;
+  @apply bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 cursor-pointer;
 }
 
-.route-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+.route-card img {
+  @apply w-full h-48 object-cover;
+}
+
+/* トラッキング中のステータス */
+.tracking-active {
+  @apply bg-red-500 text-white animate-pulse;
+}
+
+/* GPS精度インジケーター */
+.gps-accuracy-good {
+  @apply text-green-500;
+}
+
+.gps-accuracy-medium {
+  @apply text-yellow-500;
+}
+
+.gps-accuracy-poor {
+  @apply text-red-500;
+}
+
+/* フォーム要素 */
+.form-input {
+  @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent;
+}
+
+.form-textarea {
+  @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none;
+}
+
+.form-label {
+  @apply block text-sm font-semibold text-gray-700 mb-2;
+}
+
+/* モーダル */
+.modal-backdrop {
+  @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4;
+}
+
+.modal-content {
+  @apply bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto;
+}
+
+/* タブ */
+.tab-button {
+  @apply px-6 py-3 font-semibold text-gray-600 border-b-2 border-transparent hover:text-green-500 transition-colors;
+}
+
+.tab-button.active {
+  @apply text-green-500 border-green-500;
+}
+
+/* バッジ */
+.badge {
+  @apply inline-block px-3 py-1 text-xs font-semibold rounded-full;
+}
+
+.badge-easy {
+  @apply bg-green-100 text-green-800;
+}
+
+.badge-moderate {
+  @apply bg-yellow-100 text-yellow-800;
+}
+
+.badge-hard {
+  @apply bg-red-100 text-red-800;
+}
+
+/* 統計カード */
+.stat-card {
+  @apply bg-white rounded-xl p-4 shadow-md text-center;
+}
+
+.stat-value {
+  @apply text-3xl font-bold text-green-500;
+}
+
+.stat-label {
+  @apply text-sm text-gray-600 mt-1;
 }
 
 /* ボトムシート */
 .bottom-sheet {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: white;
-  border-radius: 20px 20px 0 0;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+  @apply fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl transform transition-transform duration-300 z-40;
+}
+
+.bottom-sheet.hidden {
   transform: translateY(100%);
-  transition: transform 0.3s ease-out;
-  z-index: 50;
-  max-height: 80vh;
-  overflow-y: auto;
 }
 
-.bottom-sheet.active {
-  transform: translateY(0);
+/* スライダー */
+.photo-slider {
+  @apply flex overflow-x-auto snap-x snap-mandatory scrollbar-hide;
 }
 
-/* GPS記録ボタン */
-.record-button {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
-  transition: all 0.3s;
+.photo-slider::-webkit-scrollbar {
+  display: none;
 }
 
-.record-button:active {
-  transform: scale(0.95);
+.photo-slide {
+  @apply flex-shrink-0 w-full snap-center;
 }
 
-.record-button.recording {
-  background: #EF4444;
-  animation: pulse 2s infinite;
+/* アバター */
+.avatar {
+  @apply w-10 h-10 rounded-full object-cover border-2 border-white shadow-md;
 }
 
-@keyframes pulse {
-  0%, 100% {
-    box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
-  }
-  50% {
-    box-shadow: 0 4px 30px rgba(239, 68, 68, 0.8);
-  }
+.avatar-lg {
+  @apply w-20 h-20 rounded-full object-cover border-4 border-white shadow-lg;
 }
 
-/* 距離・時間表示 */
-.stat-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.25rem 0.75rem;
-  background: #F3F4F6;
-  border-radius: 9999px;
-  font-size: 0.875rem;
-  color: #6B7280;
+/* トースト通知 */
+.toast {
+  @apply fixed top-20 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full shadow-lg z-50 animate-slide-down;
 }
 
-/* 難易度バッジ */
-.difficulty-easy {
-  background: #D1FAE5;
-  color: #065F46;
-}
-
-.difficulty-moderate {
-  background: #FEF3C7;
-  color: #92400E;
-}
-
-.difficulty-hard {
-  background: #FEE2E2;
-  color: #991B1B;
-}
-
-/* 写真グリッド */
-.photo-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 0.5rem;
-}
-
-.photo-item {
-  aspect-ratio: 1;
-  border-radius: 0.5rem;
-  overflow: hidden;
-  cursor: pointer;
-}
-
-.photo-item img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s;
-}
-
-.photo-item:hover img {
-  transform: scale(1.1);
-}
-
-/* スマホ最適化 */
-@media (max-width: 640px) {
-  .map-container {
-    height: calc(100vh - 10rem);
-  }
-}
-
-/* PWAインストールバナー */
-.pwa-banner {
-  position: fixed;
-  bottom: 5rem;
-  left: 1rem;
-  right: 1rem;
-  background: white;
-  border-radius: 1rem;
-  padding: 1rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  z-index: 45;
-  animation: slideUp 0.3s ease-out;
-}
-
-@keyframes slideUp {
+@keyframes slide-down {
   from {
-    transform: translateY(100%);
+    opacity: 0;
+    transform: translate(-50%, -20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.animate-slide-down {
+  animation: slide-down 0.3s ease-out;
+}
+
+/* ローディングスピナー */
+.spinner {
+  @apply inline-block w-6 h-6 border-4 border-gray-200 border-t-green-500 rounded-full animate-spin;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* レスポンシブ調整 */
+@media (min-width: 768px) {
+  #map-container {
+    height: calc(100vh - 5rem);
+  }
+  
+  .modal-content {
+    max-w-2xl;
+  }
+}
+
+/* PWAインストールプロンプト */
+.install-prompt {
+  @apply fixed bottom-20 left-4 right-4 bg-green-500 text-white p-4 rounded-xl shadow-2xl z-30 flex items-center justify-between;
+}
+
+/* タッチフィードバック */
+button:active,
+.clickable:active {
+  transform: scale(0.98);
+}
+
+/* スムーズスクロール */
+html {
+  scroll-behavior: smooth;
+}
+
+/* フェードインアニメーション */
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
     opacity: 0;
   }
   to {
-    transform: translateY(0);
     opacity: 1;
   }
 }
 
-/* ダークモード対応（将来実装） */
-@media (prefers-color-scheme: dark) {
-  /* body {
-    background: #1F2937;
-    color: #F9FAFB;
-  } */
+/* 空状態 */
+.empty-state {
+  @apply flex flex-col items-center justify-center py-12 text-gray-400;
 }
 
-/* カスタムスクロールバー */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+.empty-state i {
+  @apply text-6xl mb-4;
 }
 
-::-webkit-scrollbar-track {
-  background: #F3F4F6;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #9CA3AF;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #6B7280;
-}
-
-/* Leafletカスタマイズ */
-.leaflet-container {
-  font-family: inherit;
-}
-
-.leaflet-popup-content-wrapper {
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-}
-
-/* GPS精度サークル */
-.gps-accuracy-circle {
-  fill: rgba(16, 185, 129, 0.1);
-  stroke: #10B981;
-  stroke-width: 2;
-}
-
-/* 現在位置マーカー */
-.current-location-marker {
-  width: 20px;
-  height: 20px;
-  background: #10B981;
-  border: 3px solid white;
-  border-radius: 50%;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-  animation: locationPulse 2s infinite;
-}
-
-@keyframes locationPulse {
-  0% {
-    box-shadow: 0 2px 10px rgba(16, 185, 129, 0.3);
-  }
-  50% {
-    box-shadow: 0 2px 20px rgba(16, 185, 129, 0.7);
-  }
-  100% {
-    box-shadow: 0 2px 10px rgba(16, 185, 129, 0.3);
-  }
+.empty-state p {
+  @apply text-lg;
 }

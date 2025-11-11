@@ -589,8 +589,15 @@ async function saveRecordedRoute() {
   // モーダルを閉じる
   document.querySelector('.fixed')?.remove();
   
+  console.log('ルート保存成功:', data);
+  
+  // 保存成功メッセージ
   alert('ルートを保存しました！');
-  loadView('home');
+  
+  // ホーム画面に遷移
+  setTimeout(() => {
+    loadView('home');
+  }, 100);
 }
 
 // ===== プロフィール画面 =====

@@ -586,18 +586,21 @@ async function saveRecordedRoute() {
     return;
   }
   
-  // モーダルを閉じる
-  document.querySelector('.fixed')?.remove();
-  
   console.log('ルート保存成功:', data);
   
-  // 保存成功メッセージ
-  alert('ルートを保存しました！');
+  // モーダルを閉じる
+  const modalElement = document.querySelector('.fixed');
+  if (modalElement) {
+    modalElement.remove();
+  }
   
-  // ホーム画面に遷移
+  // ホーム画面に遷移（alertの前に実行）
+  loadView('home');
+  
+  // 遷移後に成功メッセージを表示
   setTimeout(() => {
-    loadView('home');
-  }, 100);
+    alert('ルートを保存しました！');
+  }, 300);
 }
 
 // ===== プロフィール画面 =====

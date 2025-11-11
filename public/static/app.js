@@ -141,7 +141,17 @@ async function loadRoutes() {
     const { data: routes, error } = await getRoutes({ limit: 20 });
     
     if (error) {
-      routeList.innerHTML = '<p class="text-center text-red-500">ルートの読み込みに失敗しました</p>';
+      console.error('ルート読み込みエラー:', error);
+      routeList.innerHTML = `
+        <div class="text-center py-12">
+          <i class="fas fa-dog text-6xl text-gray-300 mb-4"></i>
+          <p class="text-gray-500">まだルートがありません</p>
+          <p class="text-sm text-gray-400 mt-2">散歩を記録して最初のルートを共有しましょう！</p>
+          <button onclick="loadView('record')" class="mt-4 bg-green-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-600">
+            <i class="fas fa-plus mr-2"></i>最初のルートを記録
+          </button>
+        </div>
+      `;
       return;
     }
     
@@ -151,6 +161,9 @@ async function loadRoutes() {
           <i class="fas fa-dog text-6xl text-gray-300 mb-4"></i>
           <p class="text-gray-500">まだルートがありません</p>
           <p class="text-sm text-gray-400 mt-2">散歩を記録して最初のルートを共有しましょう！</p>
+          <button onclick="loadView('record')" class="mt-4 bg-green-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-600">
+            <i class="fas fa-plus mr-2"></i>最初のルートを記録
+          </button>
         </div>
       `;
       return;
@@ -159,7 +172,16 @@ async function loadRoutes() {
     routeList.innerHTML = routes.map(route => createRouteCard(route)).join('');
   } catch (error) {
     console.error('ルート取得エラー:', error);
-    routeList.innerHTML = '<p class="text-center text-red-500">エラーが発生しました</p>';
+    routeList.innerHTML = `
+      <div class="text-center py-12">
+        <i class="fas fa-dog text-6xl text-gray-300 mb-4"></i>
+        <p class="text-gray-500">まだルートがありません</p>
+        <p class="text-sm text-gray-400 mt-2">散歩を記録して最初のルートを共有しましょう！</p>
+        <button onclick="loadView('record')" class="mt-4 bg-green-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-600">
+          <i class="fas fa-plus mr-2"></i>最初のルートを記録
+        </button>
+      </div>
+    `;
   }
 }
 
@@ -721,16 +743,27 @@ async function handleLogin() {
     return;
   }
   
-  const { data, error } = await signIn(email, password);
-  
-  if (error) {
-    alert('ログインに失敗しました: ' + error.message);
-    return;
+  try {
+    const { data, error } = await signIn(email, password);
+    
+    if (error) {
+      alert('ログインに失敗しました: ' + error.message);
+      return;
+    }
+    
+    // モーダルを閉じる
+    document.querySelector('.fixed')?.remove();
+    
+    // ログイン成功
+    console.log('ログイン成功:', data);
+    alert('ログインしました！');
+    
+    // ホーム画面に遷移
+    loadView('home');
+  } catch (err) {
+    console.error('ログインエラー:', err);
+    alert('ログイン処理中にエラーが発生しました');
   }
-  
-  document.querySelector('.fixed')?.remove();
-  alert('ログインしました！');
-  loadView('profile');
 }
 
 // ===== 新規登録モーダル =====

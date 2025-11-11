@@ -1,16 +1,52 @@
 {
   "name": "WanMap - 愛犬の散歩ルート共有",
   "short_name": "WanMap",
-  "description": "愛犬との散歩ルートをGPSで記録・共有できるPWAアプリ",
+  "description": "愛犬との散歩ルートを記録・共有するPWAアプリ",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#10B981",
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
   "icons": [
+    {
+      "src": "/static/icon-72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icon-96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icon-128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icon-144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icon-152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
     {
       "src": "/static/icon-192.png",
       "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icon-384.png",
+      "sizes": "384x384",
       "type": "image/png",
       "purpose": "any maskable"
     },
@@ -21,28 +57,32 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["travel", "lifestyle", "social"],
-  "screenshots": [
+  "categories": ["lifestyle", "travel", "social"],
+  "screenshots": [],
+  "shortcuts": [
     {
-      "src": "/static/screenshot-1.png",
-      "sizes": "540x720",
-      "type": "image/png",
-      "label": "ホーム画面"
+      "name": "ルート記録",
+      "short_name": "記録",
+      "description": "新しい散歩ルートを記録",
+      "url": "/?view=record",
+      "icons": [
+        {
+          "src": "/static/icon-96.png",
+          "sizes": "96x96"
+        }
+      ]
     },
     {
-      "src": "/static/screenshot-2.png",
-      "sizes": "540x720",
-      "type": "image/png",
-      "label": "GPS記録画面"
+      "name": "マップ",
+      "short_name": "地図",
+      "description": "近くのルートを探す",
+      "url": "/?view=map",
+      "icons": [
+        {
+          "src": "/static/icon-96.png",
+          "sizes": "96x96"
+        }
+      ]
     }
-  ],
-  "share_target": {
-    "action": "/share",
-    "method": "GET",
-    "params": {
-      "title": "title",
-      "text": "text",
-      "url": "url"
-    }
-  }
+  ]
 }

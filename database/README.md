@@ -1,117 +1,72 @@
-# WanMap データベースセットアップ手順
+# WanMap Database Setup Guide
 
-## Supabaseプロジェクト作成
+## Supabaseセットアップ手順
 
-1. [Supabase](https://supabase.com)にアクセス
-2. 「New Project」をクリック
-3. プロジェクト名: `wanmap`
-4. Database Password: 安全なパスワードを生成
-5. Region: `Northeast Asia (Tokyo)` を選択
-6. 「Create new project」をクリック
+### 1. Supabaseプロジェクト作成
 
-## データベーススキーマの適用
+1. https://supabase.com/ にアクセス
+2. "Start your project" をクリック
+3. GitHubアカウントでサインイン
+4. "New project" をクリック
+5. 以下を入力：
+   - Project name: `wanmap`
+   - Database Password: 強力なパスワード（メモ必須）
+   - Region: `Northeast Asia (Tokyo)`（日本のユーザー向け）
+6. "Create new project" をクリック（2-3分待機）
 
-1. Supabaseダッシュボードで「SQL Editor」を開く
-2. `database/schema.sql`の内容を貼り付け
-3. 「Run」をクリック
+### 2. PostGIS拡張を有効化
 
-## 認証設定
+1. 左サイドバー → "Database" → "Extensions"
+2. 検索バーに "postgis" と入力
+3. "postgis" の右側にある "Enable" をクリック
 
-1. 「Authentication」→「Providers」を開く
-2. Email providerを有効化
-3. 「Confirm email」をオンに設定（後で本番環境用）
+### 3. スキーマを実行
 
-## API情報の取得
+1. 左サイドバー → "SQL Editor"
+2. "New query" をクリック
+3. `database/schema.sql` の内容を全てコピー＆ペースト
+4. "Run" ボタンをクリック
+5. 成功メッセージを確認
 
-1. 「Settings」→「API」を開く
-2. 以下をコピー:
+### 4. API認証情報を取得
+
+1. 左サイドバー → "Project Settings" (⚙️アイコン)
+2. "API" セクションをクリック
+3. 以下をメモ：
    - **Project URL**: `https://xxxxx.supabase.co`
-   - **anon public key**: `eyJhbGc...`
+   - **anon public key**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
 
-## 環境変数の設定（後で実施）
+### 5. .dev.vars ファイルに設定
 
-`.dev.vars`ファイルに以下を追加:
+プロジェクトルートに `.dev.vars` ファイルを作成：
 
-```
+```bash
 SUPABASE_URL=https://xxxxx.supabase.co
-SUPABASE_ANON_KEY=eyJhbGc...
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
-## Cloudflare R2の設定（写真保存用）
+### 6. 本番環境に設定
 
-### R2バケット作成
-
-1. [Cloudflare Dashboard](https://dash.cloudflare.com)にログイン
-2. 「R2」→「Create bucket」
-3. Bucket name: `wanmap-photos`
-4. Location: `Asia-Pacific (APAC)`
-
-### APIトークン取得
-
-1. 「R2」→「Manage R2 API Tokens」
-2. 「Create API Token」
-3. Permissions: `Object Read & Write`
-4. 「Create API Token」
-5. 以下をコピー:
-   - **Access Key ID**
-   - **Secret Access Key**
-
-### Wrangler設定
-
-`wrangler.jsonc`に追加:
-
-```jsonc
-{
-  "r2_buckets": [
-    {
-      "binding": "PHOTOS",
-      "bucket_name": "wanmap-photos"
-    }
-  ]
-}
-```
-
-`.dev.vars`に追加:
-
-```
-R2_ACCOUNT_ID=your_account_id
-R2_ACCESS_KEY_ID=your_access_key_id
-R2_SECRET_ACCESS_KEY=your_secret_access_key
-```
-
-## テストデータの挿入（開発用）
-
-認証後、以下のSQLを実行してテストユーザーを作成:
-
-```sql
--- まず、Supabaseの認証でユーザーを作成
--- その後、プロフィールを追加
-INSERT INTO profiles (id, username, display_name, bio) VALUES
-  (auth.uid(), 'testuser', 'テストユーザー', '開発用アカウント');
+```bash
+# Cloudflare Pagesのシークレット設定
+npx wrangler pages secret put SUPABASE_URL --project-name wanmap
+npx wrangler pages secret put SUPABASE_ANON_KEY --project-name wanmap
 ```
 
 ## データベース構造
 
-### メインテーブル
+### テーブル一覧
 
-- **profiles**: ユーザープロフィール
-- **dogs**: 犬のプロフィール
-- **routes**: 散歩ルート（PostGISの地理空間データ）
-- **route_photos**: ルート写真（R2のURL）
-- **likes**: いいね
-- **comments**: コメント
-- **follows**: フォロー関係
+- `profiles` - ユーザープロフィール
+- `dogs` - 犬プロフィール
+- `routes` - 散歩ルート（PostGIS地理データ）
+- `route_photos` - ルート写真（Cloudflare R2のURL）
+- `likes` - いいね
+- `comments` - コメント
+- `follows` - フォロー関係
 
-### PostGIS機能
+### 主要な機能
 
-このスキーマはPostGISの地理空間機能を使用:
-
-- `GEOGRAPHY(POINT)`: GPS座標（緯度・経度）
-- `GEOGRAPHY(LINESTRING)`: ルートの軌跡
-- `ST_Distance()`: 2点間の距離計算
-- `ST_DWithin()`: 範囲内検索
-
-### Row Level Security (RLS)
-
-すべてのテーブルでRLSが有効化されており、ユーザーは自分のデータのみ編集可能。
-閲覧は全ユーザーに公開。
+- **PostGIS地理空間データ**: ルートの経路、開始/終了地点を地理座標で保存
+- **Row Level Security (RLS)**: ユーザーごとのデータアクセス制御
+- **自動トリガー**: `updated_at` の自動更新、いいね数のカウント

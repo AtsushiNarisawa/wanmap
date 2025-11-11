@@ -1,9 +1,15 @@
 // WanMap Service Worker
-const CACHE_NAME = 'wanmap-v1';
-const ASSETS_TO_CACHE = [
+const CACHE_NAME = 'wanmap-v1.0.0';
+const STATIC_CACHE = 'wanmap-static-v1';
+const DYNAMIC_CACHE = 'wanmap-dynamic-v1';
+
+// 静的リソース（キャッシュする）
+const STATIC_ASSETS = [
   '/',
   '/static/styles.css',
   '/static/app.js',
+  '/static/js/supabase-client.js',
+  '/static/js/map-manager.js',
   '/static/manifest.json',
   'https://cdn.tailwindcss.com',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
@@ -13,25 +19,25 @@ const ASSETS_TO_CACHE = [
   'https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js'
 ];
 
-// インストール時
+// Service Worker インストール時
 self.addEventListener('install', (event) => {
   console.log('[SW] Installing...');
   
   event.waitUntil(
-    caches.open(CACHE_NAME)
+    caches.open(STATIC_CACHE)
       .then((cache) => {
-        console.log('[SW] Caching assets');
-        return cache.addAll(ASSETS_TO_CACHE.map(url => new Request(url, { cache: 'reload' })));
+        console.log('[SW] Caching static assets');
+        return cache.addAll(STATIC_ASSETS);
       })
       .catch((error) => {
-        console.error('[SW] Cache failed:', error);
+        console.error('[SW] Cache installation failed:', error);
       })
   );
   
   self.skipWaiting();
 });
 
-// アクティベーション時
+// Service Worker アクティベーション時
 self.addEventListener('activate', (event) => {
   console.log('[SW] Activating...');
   
@@ -39,10 +45,12 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
-          .filter((name) => name !== CACHE_NAME)
-          .map((name) => {
-            console.log('[SW] Deleting old cache:', name);
-            return caches.delete(name);
+          .filter((cacheName) => {
+            return cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE;
+          })
+          .map((cacheName) => {
+            console.log('[SW] Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
           })
       );
     })
@@ -51,104 +59,85 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// フェッチ時（ネットワーク優先戦略 + キャッシュフォールバック）
+// Fetch イベント（ネットワークリクエスト）
 self.addEventListener('fetch', (event) => {
   const { request } = event;
+  const url = new URL(request.url);
   
-  // APIリクエストは常にネットワーク優先
-  if (request.url.includes('/api/')) {
-    event.respondWith(
-      fetch(request)
-        .catch(() => {
-          return new Response(
-            JSON.stringify({ error: 'オフラインです' }),
-            { headers: { 'Content-Type': 'application/json' } }
-          );
-        })
-    );
+  // APIリクエストはキャッシュしない
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(fetch(request));
     return;
   }
-
-  // 静的リソースはキャッシュ優先
-  event.respondWith(
-    caches.match(request)
-      .then((cachedResponse) => {
+  
+  // 静的リソースのキャッシュ戦略: Cache First
+  if (STATIC_ASSETS.some(asset => request.url.includes(asset))) {
+    event.respondWith(
+      caches.match(request).then((cachedResponse) => {
         if (cachedResponse) {
           return cachedResponse;
         }
-
-        return fetch(request)
-          .then((response) => {
-            // 有効なレスポンスのみキャッシュ
-            if (!response || response.status !== 200 || response.type === 'error') {
-              return response;
-            }
-
-            // レスポンスをクローンしてキャッシュに保存
-            const responseToCache = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(request, responseToCache);
-            });
-
-            return response;
-          })
-          .catch((error) => {
-            console.error('[SW] Fetch failed:', error);
-            
-            // オフライン時のフォールバックページ
-            if (request.mode === 'navigate') {
-              return caches.match('/');
-            }
-            
-            return new Response('Offline', { status: 503 });
+        
+        return fetch(request).then((networkResponse) => {
+          return caches.open(STATIC_CACHE).then((cache) => {
+            cache.put(request, networkResponse.clone());
+            return networkResponse;
           });
+        });
+      })
+    );
+    return;
+  }
+  
+  // その他のリクエスト: Network First, fallback to Cache
+  event.respondWith(
+    fetch(request)
+      .then((networkResponse) => {
+        return caches.open(DYNAMIC_CACHE).then((cache) => {
+          cache.put(request, networkResponse.clone());
+          return networkResponse;
+        });
+      })
+      .catch(() => {
+        return caches.match(request).then((cachedResponse) => {
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+          
+          // オフライン時の代替ページ（オプション）
+          if (request.destination === 'document') {
+            return caches.match('/');
+          }
+        });
       })
   );
 });
 
-// プッシュ通知
+// プッシュ通知（将来の拡張用）
 self.addEventListener('push', (event) => {
+  if (!event.data) return;
+  
+  const data = event.data.json();
   const options = {
-    body: event.data ? event.data.text() : '新しい通知があります',
+    body: data.body || '新しい通知があります',
     icon: '/static/icon-192.png',
-    badge: '/static/badge-72.png',
+    badge: '/static/icon-72.png',
     vibrate: [200, 100, 200],
-    tag: 'wanmap-notification',
-    actions: [
-      { action: 'open', title: '開く' },
-      { action: 'close', title: '閉じる' }
-    ]
+    data: {
+      url: data.url || '/'
+    }
   };
-
+  
   event.waitUntil(
-    self.registration.showNotification('WanMap', options)
+    self.registration.showNotification(data.title || 'WanMap', options)
   );
 });
 
 // 通知クリック時
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-
-  if (event.action === 'open') {
-    event.waitUntil(
-      clients.openWindow('/')
-    );
-  }
-});
-
-// バックグラウンド同期
-self.addEventListener('sync', (event) => {
-  console.log('[SW] Background sync:', event.tag);
   
-  if (event.tag === 'sync-routes') {
-    event.waitUntil(syncRoutes());
-  }
+  event.waitUntil(
+    clients.openWindow(event.notification.data.url || '/')
+  );
 });
-
-async function syncRoutes() {
-  // オフライン時に保存したルートデータを同期
-  console.log('[SW] Syncing routes...');
-  // TODO: IndexedDBからデータを取得してSupabaseに送信
-}
-
-console.log('[SW] Service Worker loaded');

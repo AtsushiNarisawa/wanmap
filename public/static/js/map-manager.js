@@ -1,71 +1,48 @@
-// 地図管理クラス（Leaflet.js + OpenStreetMap）
-
+// GPS記録とマップ管理クラス
 class MapManager {
-  constructor(containerId, options = {}) {
-    this.containerId = containerId;
+  constructor() {
     this.map = null;
+    this.recording = false;
+    this.path = [];
     this.markers = [];
-    this.currentTrack = [];
-    this.trackingLine = null;
-    this.isTracking = false;
+    this.polyline = null;
     this.watchId = null;
-    
-    // デフォルトオプション
-    this.options = {
-      center: [35.2332, 139.1066], // 箱根（DogHub所在地）
-      zoom: 13,
-      minZoom: 5,
-      maxZoom: 18,
-      ...options
-    };
+    this.startTime = null;
+    this.distance = 0;
   }
 
   // 地図を初期化
-  init() {
-    // Leaflet地図を作成
-    this.map = L.map(this.containerId).setView(
-      this.options.center,
-      this.options.zoom
-    );
+  initMap(containerId, center = [35.2041, 139.0258], zoom = 13) {
+    if (this.map) {
+      this.map.remove();
+    }
 
-    // OpenStreetMapタイルレイヤーを追加
+    this.map = L.map(containerId).setView(center, zoom);
+
+    // OpenStreetMapタイルレイヤー
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      minZoom: this.options.minZoom,
-      maxZoom: this.options.maxZoom
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      maxZoom: 19
     }).addTo(this.map);
 
-    // 地図のリサイズを監視
-    setTimeout(() => {
-      this.map.invalidateSize();
-    }, 100);
-
-    return this;
+    return this.map;
   }
 
-  // 現在地を取得して地図に表示
-  async showCurrentLocation() {
+  // 現在位置を取得
+  async getCurrentPosition() {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
-        reject(new Error('Geolocation is not supported'));
+        reject(new Error('Geolocation APIがサポートされていません'));
         return;
       }
 
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          
-          // 地図を現在地に移動
-          this.map.setView([lat, lng], 15);
-          
-          // 現在地マーカーを追加
-          this.addMarker(lat, lng, {
-            icon: this.createCustomIcon('🐾', '#FF6B6B'),
-            title: '現在地'
+          resolve({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+            accuracy: position.coords.accuracy
           });
-
-          resolve({ lat, lng });
         },
         (error) => {
           reject(error);
@@ -79,114 +56,51 @@ class MapManager {
     });
   }
 
-  // カスタムアイコンを作成
-  createCustomIcon(emoji, color = '#3B82F6') {
-    return L.divIcon({
-      className: 'custom-marker',
-      html: `
-        <div style="
-          background-color: ${color};
-          width: 36px;
-          height: 36px;
-          border-radius: 50% 50% 50% 0;
-          border: 3px solid white;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 18px;
-          transform: rotate(-45deg);
-        ">
-          <span style="transform: rotate(45deg);">${emoji}</span>
-        </div>
-      `,
-      iconSize: [36, 36],
-      iconAnchor: [18, 36]
-    });
-  }
+  // GPS記録を開始
+  startRecording() {
+    if (this.recording) return;
 
-  // マーカーを追加
-  addMarker(lat, lng, options = {}) {
-    const markerOptions = {
-      icon: options.icon || this.createCustomIcon('📍'),
-      title: options.title || ''
-    };
+    this.recording = true;
+    this.path = [];
+    this.distance = 0;
+    this.startTime = new Date();
 
-    const marker = L.marker([lat, lng], markerOptions).addTo(this.map);
-    
-    if (options.popup) {
-      marker.bindPopup(options.popup);
-    }
+    // ポリライン（経路線）を作成
+    this.polyline = L.polyline([], {
+      color: '#10B981',
+      weight: 5,
+      opacity: 0.7
+    }).addTo(this.map);
 
-    this.markers.push(marker);
-    return marker;
-  }
-
-  // すべてのマーカーをクリア
-  clearMarkers() {
-    this.markers.forEach(marker => marker.remove());
-    this.markers = [];
-  }
-
-  // ===== GPSトラッキング機能 =====
-
-  // トラッキング開始
-  startTracking(onUpdate, onError) {
-    if (this.isTracking) {
-      console.warn('Tracking is already started');
-      return;
-    }
-
-    this.isTracking = true;
-    this.currentTrack = [];
-
-    // 既存のトラッキングラインをクリア
-    if (this.trackingLine) {
-      this.trackingLine.remove();
-      this.trackingLine = null;
-    }
-
-    // 位置情報の監視を開始
+    // GPS位置監視を開始
     this.watchId = navigator.geolocation.watchPosition(
       (position) => {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
-        const accuracy = position.coords.accuracy;
-        const timestamp = position.timestamp;
+        const point = [position.coords.latitude, position.coords.longitude];
+        this.path.push(point);
 
-        // トラックに追加
-        this.currentTrack.push({
-          lat,
-          lng,
-          accuracy,
-          timestamp,
-          altitude: position.coords.altitude,
-          speed: position.coords.speed
-        });
+        // ポリラインを更新
+        this.polyline.addLatLng(point);
 
-        // トラッキングラインを更新
-        this.updateTrackingLine();
+        // 距離を計算
+        if (this.path.length > 1) {
+          const lastPoint = this.path[this.path.length - 2];
+          this.distance += this.calculateDistance(
+            lastPoint[0], lastPoint[1],
+            point[0], point[1]
+          );
+        }
 
-        // 地図の中心を現在地に移動
-        this.map.setView([lat, lng], this.map.getZoom());
+        // 地図の中心を現在位置に移動
+        this.map.setView(point, this.map.getZoom());
 
-        // コールバック実行
-        if (onUpdate) {
-          onUpdate({
-            lat,
-            lng,
-            accuracy,
-            distance: this.calculateTrackDistance(),
-            duration: this.calculateTrackDuration(),
-            points: this.currentTrack.length
-          });
+        // UIを更新（外部から呼び出し）
+        if (window.updateRecordingUI) {
+          window.updateRecordingUI(this.distance, this.getDuration());
         }
       },
       (error) => {
-        console.error('Geolocation error:', error);
-        if (onError) {
-          onError(error);
-        }
+        console.error('GPS位置取得エラー:', error);
+        alert('GPS位置が取得できません');
       },
       {
         enableHighAccuracy: true,
@@ -194,183 +108,159 @@ class MapManager {
         maximumAge: 0
       }
     );
+
+    return true;
   }
 
-  // トラッキング停止
-  stopTracking() {
-    if (!this.isTracking) {
-      return null;
-    }
+  // GPS記録を停止
+  stopRecording() {
+    if (!this.recording) return null;
 
-    this.isTracking = false;
+    this.recording = false;
 
-    // 位置情報の監視を停止
-    if (this.watchId !== null) {
+    if (this.watchId) {
       navigator.geolocation.clearWatch(this.watchId);
       this.watchId = null;
     }
 
-    // トラッキングデータを返す
-    const trackData = {
-      points: [...this.currentTrack],
-      distance: this.calculateTrackDistance(),
-      duration: this.calculateTrackDuration(),
-      startPoint: this.currentTrack[0],
-      endPoint: this.currentTrack[this.currentTrack.length - 1]
+    const result = {
+      path: this.path,
+      distance: this.distance,
+      duration: this.getDuration(),
+      startTime: this.startTime,
+      endTime: new Date()
     };
 
-    return trackData;
+    return result;
   }
 
-  // トラッキングラインを更新
-  updateTrackingLine() {
-    // 既存のラインを削除
-    if (this.trackingLine) {
-      this.trackingLine.remove();
-    }
-
-    // 新しいラインを描画
-    if (this.currentTrack.length > 1) {
-      const latlngs = this.currentTrack.map(point => [point.lat, point.lng]);
-      
-      this.trackingLine = L.polyline(latlngs, {
-        color: '#FF6B6B',
-        weight: 4,
-        opacity: 0.8,
-        smoothFactor: 1
-      }).addTo(this.map);
-    }
+  // 経過時間を取得（秒）
+  getDuration() {
+    if (!this.startTime) return 0;
+    return Math.floor((new Date() - this.startTime) / 1000);
   }
 
-  // トラック距離を計算（メートル）
-  calculateTrackDistance() {
-    if (this.currentTrack.length < 2) return 0;
-
-    let totalDistance = 0;
-    for (let i = 1; i < this.currentTrack.length; i++) {
-      const prev = this.currentTrack[i - 1];
-      const curr = this.currentTrack[i];
-      totalDistance += this.haversineDistance(
-        prev.lat, prev.lng,
-        curr.lat, curr.lng
-      );
-    }
-
-    return totalDistance;
-  }
-
-  // トラック時間を計算（秒）
-  calculateTrackDuration() {
-    if (this.currentTrack.length < 2) return 0;
-
-    const start = this.currentTrack[0].timestamp;
-    const end = this.currentTrack[this.currentTrack.length - 1].timestamp;
-    
-    return Math.floor((end - start) / 1000);
-  }
-
-  // Haversine距離計算（メートル）
-  haversineDistance(lat1, lng1, lat2, lng2) {
-    const R = 6371e3; // 地球の半径（メートル）
-    const φ1 = lat1 * Math.PI / 180;
-    const φ2 = lat2 * Math.PI / 180;
-    const Δφ = (lat2 - lat1) * Math.PI / 180;
-    const Δλ = (lng2 - lng1) * Math.PI / 180;
-
-    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  // 2点間の距離を計算（Haversine公式、メートル単位）
+  calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371000; // 地球の半径（メートル）
+    const dLat = this.toRad(lat2 - lat1);
+    const dLon = this.toRad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(this.toRad(lat1)) *
+      Math.cos(this.toRad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
     return R * c;
   }
 
-  // ===== ルート表示機能 =====
+  toRad(degrees) {
+    return degrees * (Math.PI / 180);
+  }
 
-  // 保存されたルートを地図に表示
+  // ルートを地図に表示
   displayRoute(routeData) {
-    // マーカーとラインをクリア
-    this.clearMarkers();
-    if (this.trackingLine) {
-      this.trackingLine.remove();
+    if (!this.map) return;
+
+    // 既存のマーカー・ポリラインをクリア
+    this.clearMap();
+
+    const { path, start_point, end_point } = routeData;
+
+    // 経路線を描画
+    if (path && path.length > 0) {
+      this.polyline = L.polyline(path, {
+        color: '#10B981',
+        weight: 5,
+        opacity: 0.7
+      }).addTo(this.map);
+
+      // 地図の表示範囲を経路に合わせる
+      this.map.fitBounds(this.polyline.getBounds(), { padding: [50, 50] });
     }
 
-    // GeoJSONからポイントを抽出
-    const points = this.parseGeoJSON(routeData.path);
-    
-    if (points.length === 0) return;
-
-    // ルートラインを描画
-    const latlngs = points.map(p => [p.lat, p.lng]);
-    this.trackingLine = L.polyline(latlngs, {
-      color: '#3B82F6',
-      weight: 4,
-      opacity: 0.8
-    }).addTo(this.map);
-
-    // 開始地点マーカー
-    this.addMarker(points[0].lat, points[0].lng, {
-      icon: this.createCustomIcon('🏁', '#10B981'),
-      title: 'スタート',
-      popup: '<b>スタート地点</b>'
-    });
-
-    // 終了地点マーカー
-    const lastPoint = points[points.length - 1];
-    this.addMarker(lastPoint.lat, lastPoint.lng, {
-      icon: this.createCustomIcon('🎯', '#EF4444'),
-      title: 'ゴール',
-      popup: '<b>ゴール地点</b>'
-    });
-
-    // 地図をルート全体に合わせる
-    this.map.fitBounds(this.trackingLine.getBounds(), {
-      padding: [50, 50]
-    });
-  }
-
-  // GeoJSON LINESTRINGをパース
-  parseGeoJSON(geoJsonPath) {
-    try {
-      const parsed = typeof geoJsonPath === 'string' 
-        ? JSON.parse(geoJsonPath) 
-        : geoJsonPath;
-
-      if (parsed.type === 'LineString') {
-        return parsed.coordinates.map(coord => ({
-          lng: coord[0],
-          lat: coord[1]
-        }));
-      }
-    } catch (e) {
-      console.error('Failed to parse GeoJSON:', e);
+    // スタート地点マーカー
+    if (start_point) {
+      const startMarker = L.circleMarker(start_point, {
+        radius: 10,
+        fillColor: '#3B82F6',
+        color: 'white',
+        weight: 3,
+        opacity: 1,
+        fillOpacity: 1
+      }).addTo(this.map);
+      startMarker.bindPopup('<b>スタート地点</b>');
+      this.markers.push(startMarker);
     }
-    return [];
-  }
 
-  // トラックデータをGeoJSON形式に変換
-  trackToGeoJSON() {
-    if (this.currentTrack.length < 2) return null;
-
-    return {
-      type: 'LineString',
-      coordinates: this.currentTrack.map(point => [
-        point.lng,
-        point.lat
-      ])
-    };
-  }
-
-  // 地図を破棄
-  destroy() {
-    if (this.watchId !== null) {
-      navigator.geolocation.clearWatch(this.watchId);
+    // ゴール地点マーカー
+    if (end_point) {
+      const endMarker = L.circleMarker(end_point, {
+        radius: 10,
+        fillColor: '#EF4444',
+        color: 'white',
+        weight: 3,
+        opacity: 1,
+        fillOpacity: 1
+      }).addTo(this.map);
+      endMarker.bindPopup('<b>ゴール地点</b>');
+      this.markers.push(endMarker);
     }
+  }
+
+  // 地図をクリア
+  clearMap() {
+    if (this.polyline) {
+      this.map.removeLayer(this.polyline);
+      this.polyline = null;
+    }
+
+    this.markers.forEach(marker => this.map.removeLayer(marker));
+    this.markers = [];
+  }
+
+  // 複数のルートを表示（一覧表示用）
+  displayMultipleRoutes(routes) {
+    if (!this.map) return;
+
+    this.clearMap();
+
+    routes.forEach((route, index) => {
+      if (!route.path) return;
+
+      // 各ルートに異なる色を付ける
+      const colors = ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6'];
+      const color = colors[index % colors.length];
+
+      const polyline = L.polyline(route.path, {
+        color,
+        weight: 4,
+        opacity: 0.6
+      }).addTo(this.map);
+
+      polyline.bindPopup(`
+        <b>${route.title}</b><br>
+        距離: ${(route.distance / 1000).toFixed(1)}km
+      `);
+
+      this.markers.push(polyline);
+    });
+
+    // すべてのルートが見えるように地図を調整
+    const group = L.featureGroup(this.markers);
+    if (group.getBounds().isValid()) {
+      this.map.fitBounds(group.getBounds(), { padding: [50, 50] });
+    }
+  }
+
+  // 地図のサイズを再調整（コンテナサイズ変更時）
+  invalidateSize() {
     if (this.map) {
-      this.map.remove();
+      this.map.invalidateSize();
     }
   }
 }
 
 // グローバルインスタンス
-window.MapManager = MapManager;
+const mapManager = new MapManager();

@@ -94,14 +94,36 @@ CREATE TABLE IF NOT EXISTS follows (
 
 -- インデックス
 CREATE INDEX IF NOT EXISTS idx_routes_start_point ON routes USING GIST(start_point);
+CREATE INDEX IF NOT EXISTS idx_routes_path ON routes USING GIST(path);
 CREATE INDEX IF NOT EXISTS idx_routes_user_id ON routes(user_id);
+CREATE INDEX IF NOT EXISTS idx_routes_walked_at ON routes(walked_at DESC);
 CREATE INDEX IF NOT EXISTS idx_dogs_user_id ON dogs(user_id);
+CREATE INDEX IF NOT EXISTS idx_route_photos_route_id ON route_photos(route_id);
 
 -- RLSポリシー
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE dogs ENABLE ROW LEVEL SECURITY;
-ALTER TABLE routes ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "プロフィールは誰でも閲覧可能" ON profiles FOR SELECT USING (true);
+CREATE POLICY "ユーザーは自分のプロフィールのみ更新可能" ON profiles FOR UPDATE USING (auth.uid() = id);
 
-CREATE POLICY "Public profiles" ON profiles FOR SELECT USING (true);
-CREATE POLICY "Public dogs" ON dogs FOR SELECT USING (true);
-CREATE POLICY "Public routes" ON routes FOR SELECT USING (true);
+ALTER TABLE dogs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "犬プロフィールは誰でも閲覧可能" ON dogs FOR SELECT USING (true);
+CREATE POLICY "ユーザーは自分の犬のみ管理可能" ON dogs FOR ALL USING (auth.uid() = user_id);
+
+ALTER TABLE routes ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "ルートは誰でも閲覧可能" ON routes FOR SELECT USING (true);
+CREATE POLICY "ユーザーは自分のルートのみ管理可能" ON routes FOR ALL USING (auth.uid() = user_id);
+
+ALTER TABLE route_photos ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "写真は誰でも閲覧可能" ON route_photos FOR SELECT USING (true);
+
+ALTER TABLE likes ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "いいねは誰でも閲覧可能" ON likes FOR SELECT USING (true);
+CREATE POLICY "ユーザーは自分のいいねのみ管理可能" ON likes FOR ALL USING (auth.uid() = user_id);
+
+ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "コメントは誰でも閲覧可能" ON comments FOR SELECT USING (true);
+CREATE POLICY "ユーザーは自分のコメントのみ管理可能" ON comments FOR ALL USING (auth.uid() = user_id);
+
+ALTER TABLE follows ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "フォローは誰でも閲覧可能" ON follows FOR SELECT USING (true);
+CREATE POLICY "ユーザーは自分のフォローのみ管理可能" ON follows FOR ALL USING (auth.uid() = follower_id);

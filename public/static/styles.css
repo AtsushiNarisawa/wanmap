@@ -1,254 +1,119 @@
-/* WanMap カスタムスタイル */
-
-/* 地図コンテナ */
-#map-container {
-  width: 100%;
-  height: calc(100vh - 8rem); /* ナビゲーションバーとボトムバーを除く */
-  position: relative;
-}
-
-/* Leaflet地図のスタイル調整 */
-.leaflet-container {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-/* カスタムマーカースタイル */
-.custom-marker {
-  background: transparent;
-  border: none;
-}
+/* WanMap Custom Styles */
 
 /* ローディングアニメーション */
-@keyframes bounce {
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+.fade-out {
+  animation: fadeOut 0.5s ease-out forwards;
+}
+
+/* 地図コンテナ */
+#map {
+  width: 100%;
+  height: calc(100vh - 128px); /* ナビバー(64px) + ボトムナビ(64px) */
+}
+
+/* カードホバー効果 */
+.route-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.route-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* ボタンリップル効果 */
+.btn-ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-ripple::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.btn-ripple:active::after {
+  width: 300px;
+  height: 300px;
+}
+
+/* GPS記録中のパルスアニメーション */
+@keyframes pulse {
   0%, 100% {
-    transform: translateY(0);
+    opacity: 1;
   }
   50% {
-    transform: translateY(-20px);
+    opacity: 0.5;
   }
 }
 
-.animate-bounce {
-  animation: bounce 1s infinite;
+.recording-pulse {
+  animation: pulse 2s ease-in-out infinite;
 }
 
-/* ボタンのホバー効果 */
-.btn-primary {
-  @apply bg-green-500 text-white px-6 py-3 rounded-full font-semibold shadow-lg hover:bg-green-600 transition-all duration-300 active:scale-95;
+/* カスタムスクロールバー */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
 }
 
-.btn-secondary {
-  @apply bg-gray-100 text-gray-700 px-6 py-3 rounded-full font-semibold hover:bg-gray-200 transition-all duration-300 active:scale-95;
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
 }
 
-.btn-danger {
-  @apply bg-red-500 text-white px-6 py-3 rounded-full font-semibold shadow-lg hover:bg-red-600 transition-all duration-300 active:scale-95;
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #10B981;
+  border-radius: 3px;
 }
 
-/* カードスタイル */
-.route-card {
-  @apply bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 cursor-pointer;
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #059669;
 }
 
-.route-card img {
-  @apply w-full h-48 object-cover;
-}
-
-/* トラッキング中のステータス */
-.tracking-active {
-  @apply bg-red-500 text-white animate-pulse;
-}
-
-/* GPS精度インジケーター */
-.gps-accuracy-good {
-  @apply text-green-500;
-}
-
-.gps-accuracy-medium {
-  @apply text-yellow-500;
-}
-
-.gps-accuracy-poor {
-  @apply text-red-500;
-}
-
-/* フォーム要素 */
-.form-input {
-  @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent;
-}
-
-.form-textarea {
-  @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none;
-}
-
-.form-label {
-  @apply block text-sm font-semibold text-gray-700 mb-2;
-}
-
-/* モーダル */
-.modal-backdrop {
-  @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4;
-}
-
-.modal-content {
-  @apply bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto;
-}
-
-/* タブ */
-.tab-button {
-  @apply px-6 py-3 font-semibold text-gray-600 border-b-2 border-transparent hover:text-green-500 transition-colors;
-}
-
-.tab-button.active {
-  @apply text-green-500 border-green-500;
-}
-
-/* バッジ */
-.badge {
-  @apply inline-block px-3 py-1 text-xs font-semibold rounded-full;
-}
-
-.badge-easy {
-  @apply bg-green-100 text-green-800;
-}
-
-.badge-moderate {
-  @apply bg-yellow-100 text-yellow-800;
-}
-
-.badge-hard {
-  @apply bg-red-100 text-red-800;
-}
-
-/* 統計カード */
-.stat-card {
-  @apply bg-white rounded-xl p-4 shadow-md text-center;
-}
-
-.stat-value {
-  @apply text-3xl font-bold text-green-500;
-}
-
-.stat-label {
-  @apply text-sm text-gray-600 mt-1;
-}
-
-/* ボトムシート */
-.bottom-sheet {
-  @apply fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl transform transition-transform duration-300 z-40;
-}
-
-.bottom-sheet.hidden {
-  transform: translateY(100%);
-}
-
-/* スライダー */
-.photo-slider {
-  @apply flex overflow-x-auto snap-x snap-mandatory scrollbar-hide;
-}
-
-.photo-slider::-webkit-scrollbar {
-  display: none;
-}
-
-.photo-slide {
-  @apply flex-shrink-0 w-full snap-center;
-}
-
-/* アバター */
-.avatar {
-  @apply w-10 h-10 rounded-full object-cover border-2 border-white shadow-md;
-}
-
-.avatar-lg {
-  @apply w-20 h-20 rounded-full object-cover border-4 border-white shadow-lg;
-}
-
-/* トースト通知 */
-.toast {
-  @apply fixed top-20 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full shadow-lg z-50 animate-slide-down;
-}
-
-@keyframes slide-down {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -20px);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, 0);
+/* モバイル最適化 */
+@media (max-width: 640px) {
+  #map {
+    height: calc(100vh - 132px);
   }
 }
 
-.animate-slide-down {
-  animation: slide-down 0.3s ease-out;
+/* Leaflet マーカーのカスタマイズ */
+.custom-marker {
+  background: #10B981;
+  border: 3px solid white;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-/* ローディングスピナー */
-.spinner {
-  @apply inline-block w-6 h-6 border-4 border-gray-200 border-t-green-500 rounded-full animate-spin;
+.start-marker {
+  background: #3B82F6;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+.end-marker {
+  background: #EF4444;
 }
 
-.animate-spin {
-  animation: spin 1s linear infinite;
-}
-
-/* レスポンシブ調整 */
-@media (min-width: 768px) {
-  #map-container {
-    height: calc(100vh - 5rem);
-  }
-  
-  .modal-content {
-    max-w-2xl;
-  }
-}
-
-/* PWAインストールプロンプト */
+/* PWAインストールバナー */
 .install-prompt {
-  @apply fixed bottom-20 left-4 right-4 bg-green-500 text-white p-4 rounded-xl shadow-2xl z-30 flex items-center justify-between;
-}
-
-/* タッチフィードバック */
-button:active,
-.clickable:active {
-  transform: scale(0.98);
-}
-
-/* スムーズスクロール */
-html {
-  scroll-behavior: smooth;
-}
-
-/* フェードインアニメーション */
-.fade-in {
-  animation: fadeIn 0.5s ease-in;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/* 空状態 */
-.empty-state {
-  @apply flex flex-col items-center justify-center py-12 text-gray-400;
-}
-
-.empty-state i {
-  @apply text-6xl mb-4;
-}
-
-.empty-state p {
-  @apply text-lg;
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  color: white;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }

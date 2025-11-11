@@ -484,7 +484,8 @@ function showSaveRouteModal(recordingData) {
   }
   
   const modal = document.createElement('div');
-  modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+  modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4';
+  modal.style.zIndex = '9999';
   modal.innerHTML = `
     <div class="bg-white rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
       <div class="p-6">
@@ -498,7 +499,8 @@ function showSaveRouteModal(recordingData) {
             <label class="block text-sm font-semibold text-gray-700 mb-2">タイトル *</label>
             <input type="text" id="routeTitle" 
                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                   placeholder="例: 箱根湖畔散歩コース">
+                   placeholder="例: 箱根湖畔散歩コース"
+                   value="テスト散歩 ${new Date().toLocaleDateString('ja-JP')}">
           </div>
           
           <div>
@@ -697,7 +699,8 @@ async function checkSupabaseStatus() {
 
 function showLoginModal() {
   const modal = document.createElement('div');
-  modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+  modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4';
+  modal.style.zIndex = '9999';
   modal.innerHTML = `
     <div class="bg-white rounded-lg w-full max-w-md">
       <div class="p-6">
@@ -784,7 +787,8 @@ function showSignupForm() {
   document.querySelector('.fixed')?.remove();
   
   const modal = document.createElement('div');
-  modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+  modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4';
+  modal.style.zIndex = '9999';
   modal.innerHTML = `
     <div class="bg-white rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
       <div class="p-6">

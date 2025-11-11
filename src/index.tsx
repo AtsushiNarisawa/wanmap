@@ -161,10 +161,10 @@ app.get('/', (c) => {
         <meta name="theme-color" content="#10B981">
         <title>WanMap - 愛犬の散歩ルート共有</title>
         
-        <!-- PWA Manifest -->
-        <link rel="manifest" href="/static/manifest.json">
-        <link rel="icon" href="/static/favicon.ico">
-        <link rel="apple-touch-icon" href="/static/icon-192.png">
+        <!-- PWA Manifest (一時的に無効化) -->
+        <!-- <link rel="manifest" href="/static/manifest.json"> -->
+        <!-- <link rel="icon" href="/static/favicon.ico"> -->
+        <!-- <link rel="apple-touch-icon" href="/static/icon-192.png"> -->
         
         <!-- Tailwind CSS -->
         <script src="https://cdn.tailwindcss.com"></script>

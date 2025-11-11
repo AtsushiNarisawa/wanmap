@@ -48,9 +48,9 @@ class MapManager {
           reject(error);
         },
         {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0
+          enableHighAccuracy: false, // 高精度をオフにして速度優先
+          timeout: 30000, // 30秒に延長
+          maximumAge: 60000 // 1分以内のキャッシュを許可
         }
       );
     });

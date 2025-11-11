@@ -403,8 +403,19 @@ async function initializeRecordView() {
     
   } catch (error) {
     console.error('位置情報取得エラー:', error);
-    alert('GPS位置情報の取得に失敗しました。位置情報を有効にしてください。');
-    mapManager.initMap('recordMap');
+    // デフォルト位置（箱根）で地図を表示
+    mapManager.initMap('recordMap', [35.2041, 139.0258], 13);
+    
+    // 通知を表示
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-yellow-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+    notification.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i>位置情報が取得できませんでした。デフォルト位置（箱根）を表示しています。';
+    document.body.appendChild(notification);
+    
+    // 5秒後に通知を削除
+    setTimeout(() => {
+      notification.remove();
+    }, 5000);
   }
 }
 

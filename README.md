@@ -1,387 +1,275 @@
-# 🐾 WanMap - 愛犬の散歩ルート共有PWA
+# WanMap - 愛犬の散歩ルート共有PWAアプリ
 
-**旅行先での「どこを散歩すればいいかわからない」を解決**
+愛犬との散歩ルートをGPSで記録・共有できるPWA（Progressive Web App）。旅行先での「どこを散歩すればいいかわからない」問題を解決し、全国の飼い主コミュニティを形成します。
 
-愛犬との散歩ルートをGPSで記録・共有できるプログレッシブWebアプリ（PWA）。全国の飼い主コミュニティで安全で楽しい散歩コースを見つけよう。
+## 🌐 公開URL
 
----
+- **開発環境**: https://3000-ifptz010rbeusa0fgwxvk-2b54fc91.sandbox.novita.ai
+- **本番環境**: （Cloudflare Pagesデプロイ後に追加）
 
-## 🌟 プロジェクト概要
+## ✨ 実装済み機能
 
-- **名前**: WanMap（わんマップ）
-- **目的**: 愛犬と旅行する飼い主の散歩ルート発見・共有プラットフォーム
-- **ターゲット**: 日本の犬飼育世帯 約680万世帯
-- **Phase 1**: 完全無料・広告なし（DogHub宣伝ツール）
+### Phase 1 - MVP（現在完了）
 
----
+- ✅ **ユーザー認証**
+  - Supabaseメール認証によるログイン・サインアップ
+  - セキュアなRow Level Security (RLS)
+  
+- ✅ **GPSルート記録**
+  - リアルタイムGPSトラッキング
+  - 距離・時間・速度の自動計算
+  - Haversine公式による正確な距離測定
+  
+- ✅ **OpenStreetMap統合**
+  - Leaflet.jsによる地図表示
+  - ルート経路の可視化
+  - スタート/ゴール地点のマーカー表示
+  
+- ✅ **ルート管理**
+  - ルート一覧表示（カード形式）
+  - ルート詳細ビュー
+  - 難易度・タグ設定
+  
+- ✅ **PWA対応**
+  - オフライン動作（Service Worker）
+  - ホーム画面追加可能
+  - manifest.json完備
+  
+- ✅ **レスポンシブUI**
+  - Tailwind CSSによるモダンデザイン
+  - モバイルファースト設計
+  - ボトムナビゲーション
 
-## ✅ 現在完了している機能
-
-### コア機能
-- ✅ **PWA対応** - ホーム画面に追加、オフライン動作
-- ✅ **GPS記録** - リアルタイムで散歩ルートを追跡
-- ✅ **OpenStreetMap統合** - 無料の地図表示（Leaflet.js）
-- ✅ **レスポンシブUI** - スマホ・タブレット対応
-- ✅ **ボトムナビゲーション** - 直感的な5画面構成
-
-### 実装済み画面
-1. **ホーム** - 人気ルート一覧、DogHub宣伝バナー
-2. **マップ** - OpenStreetMap表示、現在地取得
-3. **散歩記録** - GPS追跡、距離・時間計測
-4. **プロフィール** - ユーザー・犬情報管理
-5. **設定** - アカウント・通知設定
-
-### バックエンド
-- ✅ **Hono + Cloudflare Pages** - 超軽量エッジデプロイ
-- ✅ **Supabase統合準備** - PostgreSQL + PostGIS（地理空間データ）
-- ✅ **R2ストレージ統合準備** - 写真保存用
-- ✅ **RESTful API** - ルート取得・作成エンドポイント
-
----
-
-## 🚀 デプロイURL
-
-### 開発環境（サンドボックス）
-- **URL**: https://3000-ifptz010rbeusa0fgwxvk-2b54fc91.sandbox.novita.ai
-- **APIヘルスチェック**: https://3000-ifptz010rbeusa0fgwxvk-2b54fc91.sandbox.novita.ai/api/health
-- **ステータス**: ✅ 動作中
-
-### 本番環境（Cloudflare Pages）
-- **URL**: 未デプロイ（Supabase設定後）
-- **予定ドメイン**: wanmap.pages.dev
-
----
-
-## 📊 データアーキテクチャ
-
-### データベーススキーマ（Supabase PostgreSQL + PostGIS）
-
-#### テーブル構成
-1. **profiles** - ユーザープロフィール
-2. **dogs** - 愛犬プロフィール
-3. **routes** - 散歩ルート（GEOGRAPHY型で地理データ保存）
-4. **route_photos** - ルート写真（R2 URL）
-5. **likes** - いいね
-6. **comments** - コメント
-7. **follows** - フォロー関係
-
-#### 地理空間機能（PostGIS）
-- `GEOGRAPHY(LINESTRING)` - GPS軌跡を正確に保存
-- `GEOGRAPHY(POINT)` - 開始・終了地点、写真位置
-- GISTインデックス - 高速地理検索
-
-### ストレージ構成
-- **Supabase Storage** - プロフィール画像（無料1GB）
-- **Cloudflare R2** - ルート写真（無料10GB）
-
----
-
-## 🛠️ 技術スタック
-
-### フロントエンド
-- **Vanilla JavaScript** - 軽量・高速
-- **TailwindCSS (CDN)** - ユーティリティファーストCSS
-- **Leaflet.js** - OpenStreetMap表示
-- **Font Awesome** - アイコン
-- **Supabase JS Client (CDN)** - 認証・データベース
-
-### バックエンド
-- **Hono** - 超軽量Webフレームワーク
-- **Cloudflare Pages** - エッジデプロイ（完全無料）
-- **Supabase** - BaaS（認証・PostgreSQL・Storage）
-- **Cloudflare R2** - オブジェクトストレージ
-
-### 開発ツール
-- **Vite** - 高速ビルドツール
-- **Wrangler** - Cloudflare CLI
-- **PM2** - プロセス管理（開発環境）
-- **Git** - バージョン管理
-
----
-
-## 📱 ユーザーガイド
-
-### 基本的な使い方
-
-1. **アプリを開く**
-   - ブラウザでURLにアクセス
-   - 「ホーム画面に追加」でPWAインストール
-
-2. **散歩を記録する**
-   - ボトムバーの「+」ボタンをタップ
-   - 「記録開始」で GPS追跡開始
-   - 散歩が終わったら「記録停止」
-   - タイトル・説明を入力して保存
-
-3. **ルートを探す**
-   - 「マップ」タブで近くのルートを表示
-   - 検索バーで場所・ルート名で検索
-   - ルートカードをタップで詳細表示
-
-4. **プロフィール設定**
-   - 「プロフィール」タブで情報編集
-   - 愛犬プロフィールを追加
-   - マイルート一覧を確認
-
----
-
-## ⚙️ セットアップ手順
-
-### 前提条件
-- Node.js 18+
-- npm または yarn
-- Supabaseアカウント（無料）
-- Cloudflareアカウント（無料）
-
-### 1. プロジェクトをクローン
-```bash
-git clone https://github.com/yourusername/wanmap.git
-cd wanmap
-```
-
-### 2. 依存関係をインストール
-```bash
-npm install
-```
-
-### 3. Supabase設定
-
-#### 3.1 Supabaseプロジェクト作成
-1. https://supabase.com でプロジェクト作成
-2. `database/schema.sql` を SQL Editor で実行
-
-#### 3.2 API設定を `.dev.vars` に保存
-```bash
-# .dev.vars
-SUPABASE_URL=https://xxxxx.supabase.co
-SUPABASE_ANON_KEY=eyJhbGc...
-```
-
-### 4. Cloudflare R2設定（写真保存用）
-
-#### 4.1 R2バケット作成
-```bash
-npx wrangler r2 bucket create wanmap-photos
-```
-
-#### 4.2 API トークン作成
-- Cloudflare Dashboard → R2 → API Tokens
-- `.dev.vars` に追加:
-```bash
-R2_ACCOUNT_ID=xxxx
-R2_ACCESS_KEY_ID=xxxx
-R2_SECRET_ACCESS_KEY=xxxx
-```
-
-### 5. 開発サーバー起動
-```bash
-npm run build
-npm run dev:sandbox
-```
-
-ブラウザで http://localhost:3000 を開く
-
-### 6. 本番デプロイ（Cloudflare Pages）
-
-#### 6.1 Cloudflare認証設定
-```bash
-# Cloudflare API キーをサンドボックスに設定（自動）
-# 手動の場合: npx wrangler login
-```
-
-#### 6.2 Pagesプロジェクト作成
-```bash
-npx wrangler pages project create wanmap --production-branch main
-```
-
-#### 6.3 環境変数を設定
-```bash
-npx wrangler pages secret put SUPABASE_URL
-npx wrangler pages secret put SUPABASE_ANON_KEY
-```
-
-#### 6.4 デプロイ実行
-```bash
-npm run deploy
-```
-
----
-
-## 📁 プロジェクト構成
+## 📂 プロジェクト構造
 
 ```
 wanmap/
 ├── src/
-│   └── index.tsx              # Honoメインアプリ
+│   └── index.tsx              # Honoバックエンド（API + SSR）
 ├── public/
 │   ├── static/
-│   │   ├── js/
-│   │   │   ├── supabase-client.js  # Supabaseクライアント
-│   │   │   └── map-manager.js      # 地図・GPS管理
-│   │   ├── app.js             # メインアプリロジック
-│   │   ├── styles.css         # カスタムスタイル
-│   │   └── manifest.json      # PWAマニフェスト
+│   │   ├── styles.css         # カスタムCSS
+│   │   ├── app.js             # メインアプリケーションロジック
+│   │   ├── manifest.json      # PWA manifest
+│   │   └── js/
+│   │       ├── supabase-client.js  # Supabase統合
+│   │       └── map-manager.js      # GPS & 地図管理
 │   └── service-worker.js      # PWA Service Worker
 ├── database/
-│   ├── schema.sql             # Supabaseデータベーススキーマ
-│   └── setup-instructions.md  # セットアップ手順
-├── dist/                      # ビルド出力（自動生成）
-├── .dev.vars.example          # 環境変数テンプレート
+│   ├── schema.sql             # Supabase/PostgreSQL + PostGISスキーマ
+│   └── README.md              # データベースセットアップガイド
 ├── ecosystem.config.cjs       # PM2設定
-├── package.json
-├── vite.config.ts
-├── wrangler.jsonc
-└── README.md
+├── package.json               # 依存関係
+├── wrangler.jsonc             # Cloudflare Pages設定
+└── README.md                  # このファイル
 ```
 
----
+## 🗄️ データベース構造
 
-## 🔧 開発コマンド
+### 主要テーブル
+
+- **profiles** - ユーザープロフィール
+- **dogs** - 犬プロフィール
+- **routes** - 散歩ルート（PostGIS地理データ）
+  - `path`: LINESTRING（経路座標）
+  - `start_point`: POINT（開始地点）
+  - `end_point`: POINT（終了地点）
+  - 距離、時間、難易度、タグなど
+- **route_photos** - ルート写真（Cloudflare R2のURL）
+- **likes** - いいね
+- **comments** - コメント
+- **follows** - フォロー関係
+
+### 地理空間機能
+
+- **PostGIS拡張**: 地理座標の高度な検索・計算
+- **距離範囲検索**: ST_DWithin関数で近くのルートを検索
+- **地理インデックス**: GIST indexで高速検索
+
+## 🚀 セットアップ手順
+
+### 1. 依存関係のインストール
 
 ```bash
-# 開発サーバー起動（Vite）
-npm run dev
+npm install
+```
 
-# サンドボックス開発（Wrangler）
-npm run dev:sandbox
+### 2. Supabaseプロジェクト作成
 
+詳細は `database/README.md` を参照してください。
+
+1. https://supabase.com でプロジェクト作成
+2. PostGIS拡張を有効化
+3. `database/schema.sql` を実行
+4. Project URLとAnon Keyを取得
+
+### 3. 環境変数設定
+
+プロジェクトルートに `.dev.vars` ファイルを作成：
+
+```bash
+SUPABASE_URL=https://xxxxx.supabase.co
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+### 4. ローカル開発
+
+```bash
 # ビルド
 npm run build
 
-# プレビュー
-npm run preview
+# PM2で起動
+pm2 start ecosystem.config.cjs
 
-# デプロイ（Cloudflare Pages）
-npm run deploy
-
-# ポート3000をクリーンアップ
-npm run clean-port
-
-# ヘルスチェック
-npm test
-
-# Git操作
-npm run git:status
-npm run git:commit "メッセージ"
-npm run git:log
+# または直接起動
+npm run dev:sandbox
 ```
 
----
+### 5. 本番デプロイ（Cloudflare Pages）
 
-## 🔮 今後の実装予定（Phase 2）
+```bash
+# ビルド
+npm run build
 
-### 🚧 未実装機能
+# デプロイ
+npm run deploy
 
-#### コミュニティ機能
-- [ ] ルート検索（エリア、距離、難易度フィルター）
-- [ ] いいね・コメント機能
-- [ ] ユーザーフォロー機能
-- [ ] 通知システム
+# または手動デプロイ
+npx wrangler pages deploy dist --project-name wanmap
+```
 
-#### ルート機能強化
-- [ ] 写真アップロード（カメラ・ギャラリー）
-- [ ] ルート難易度自動判定（標高データ）
-- [ ] オフラインルート保存（IndexedDB）
-- [ ] ルート共有（Twitter、LINE）
+## 📱 API エンドポイント
 
-#### プロフィール
-- [ ] 複数の愛犬プロフィール
-- [ ] アバター画像アップロード
-- [ ] 統計ダッシュボード（総距離、時間）
+### ヘルスチェック
+```
+GET /api/health
+```
 
-#### 地図機能
-- [ ] ヒートマップ表示
-- [ ] ルートクラスター表示
-- [ ] カスタムマーカー
-- [ ] ストリートビュー連携
+### 設定取得
+```
+GET /api/config
+```
 
-#### DogHub連携
-- [ ] DogHub予約システム統合
-- [ ] 箱根エリア特別表示
-- [ ] キャンペーン情報表示
+### ルート一覧
+```
+GET /api/routes?lat=35.2041&lng=139.0258&radius=10000&limit=20
+```
 
----
+### ルート詳細
+```
+GET /api/routes/:id
+```
 
-## 💰 コスト構造
+### ルート作成
+```
+POST /api/routes
+Body: { title, description, path, distance, duration, ... }
+```
 
-### Phase 1（現在）
-- **Cloudflare Pages**: 無料（帯域100GB/月）
-- **Supabase Free Tier**: 無料（500MB DB、1GB Storage）
-- **Cloudflare R2**: 無料（10GB Storage）
-- **ドメイン**: 約1,200円/年（.com）
-- **合計**: **年間1,200円**
+### 写真アップロード（R2）
+```
+POST /api/photos/upload
+Body: FormData with 'file' field
+```
 
-### Phase 2（有料プラン移行時）
-- **Supabase Pro**: $25/月（8GB DB、100GB Storage）
-- **Cloudflare Pages**: 無料（引き続き）
-- **Cloudflare R2**: 従量課金（10GB超過時）
-- **予想コスト**: $30-50/月
+## 🔧 技術スタック
 
----
+### フロントエンド
+- **HTML/CSS/JavaScript** - PWA標準技術
+- **Tailwind CSS** - ユーティリティファーストCSS
+- **Leaflet.js** - OpenStreetMap表示
+- **Font Awesome** - アイコン
+- **Axios** - HTTPクライアント
 
-## 🎯 ビジネス目標
+### バックエンド
+- **Hono** - 軽量Webフレームワーク
+- **Cloudflare Workers/Pages** - エッジランタイム
+- **Supabase** - BaaS（PostgreSQL + Auth）
+- **PostGIS** - 地理空間データ拡張
 
-### Phase 1（初年度）
-- ✅ 完全無料運用
-- ✅ 広告なし
-- ✅ DogHub（箱根ドッグホテル・カフェ）の宣伝ツール
-- 目標ユーザー数: 1,000人
+### インフラ
+- **Cloudflare Pages** - ホスティング（無料）
+- **Cloudflare R2** - 画像ストレージ（10GB無料）
+- **OpenStreetMap** - 地図タイル（完全無料）
 
-### Phase 2（2年目以降）
-- 有料プレミアムプラン導入
-- 広告収益モデル検討
-- ペット関連企業とのタイアップ
+## 🎯 未実装機能（Phase 2）
 
----
+- ⏳ ルート検索（エリア、距離、難易度フィルタ）
+- ⏳ いいね機能の完全統合
+- ⏳ コメント機能
+- ⏳ フォロー機能
+- ⏳ DogHub宣伝バナー
+- ⏳ ルート写真ギャラリー（R2統合）
+- ⏳ 犬プロフィール詳細管理
+- ⏳ プッシュ通知
 
-## 🤝 推奨次のステップ
+## 💡 開発のポイント
 
-1. **Supabase設定**
-   - アカウント作成
-   - データベーススキーマ適用
-   - API情報を `.dev.vars` に設定
+### GPS記録の精度向上
 
-2. **Cloudflare R2設定**
-   - バケット作成
-   - API トークン取得
+```javascript
+// 高精度GPSを有効化
+navigator.geolocation.watchPosition(callback, errorCallback, {
+  enableHighAccuracy: true,  // 高精度モード
+  timeout: 5000,             // タイムアウト5秒
+  maximumAge: 0              # キャッシュを使わない
+});
+```
 
-3. **機能テスト**
-   - GPS記録動作確認
-   - 地図表示確認
-   - PWAインストール確認
+### PostGIS地理検索
 
-4. **本番デプロイ**
-   - Cloudflare Pages デプロイ
-   - カスタムドメイン設定
-   - SSL証明書確認
+```sql
+-- 10km圏内のルートを検索
+SELECT * FROM routes
+WHERE ST_DWithin(
+  start_point,
+  ST_MakePoint(139.0258, 35.2041)::geography,
+  10000  -- メートル
+);
+```
 
-5. **フィードバック収集**
-   - ベータテスト実施
-   - ユーザー体験改善
+### PWAオフライン対応
 
----
+Service Workerのキャッシュ戦略:
+- **静的リソース**: Cache First
+- **APIリクエスト**: Network Only
+- **動的コンテンツ**: Network First, fallback to Cache
 
-## 📞 サポート・お問い合わせ
+## 📊 パフォーマンス目標
 
-- **開発者**: 篤（Atsushi）
-- **所属**: DogHub（箱根ドッグホテル・カフェ）
-- **場所**: 神奈川県足柄下郡箱根町
+- **初回ロード**: < 3秒
+- **GPS精度**: ± 10メートル
+- **地図レンダリング**: < 1秒
+- **PWAインストールサイズ**: < 5MB
 
----
+## 🤝 コントリビューション
+
+プルリクエスト歓迎！以下の点にご注意ください：
+
+1. Supabase APIキーは `.dev.vars` に保存（Gitに含めない）
+2. モックデータでの動作確認を優先
+3. モバイルファーストで実装
+4. PostGISの地理関数を活用
 
 ## 📄 ライセンス
 
-このプロジェクトは個人プロジェクトです。商用利用の際はご相談ください。
+MIT License
+
+## 👤 開発者
+
+**篤（Atsushi）**
+- DogHub運営者（箱根のドッグホテル・カフェ）
+- マーケティングスペシャリスト
+- 電通・ADK出身
 
 ---
 
-## 🙏 謝辞
+## 🐕 DogHubについて
 
-- **OpenStreetMap** - 無料地図データ提供
-- **Supabase** - オープンソースBaaS
-- **Cloudflare** - 無料エッジホスティング
-- **Leaflet.js** - オープンソース地図ライブラリ
+WanMapは、箱根で運営するドッグホテル・カフェ「DogHub」の宣伝ツールとして開発されました。
 
----
+- **所在地**: 神奈川県足柄下郡箱根町
+- **サービス**: ドッグホテル（¥5,500/泊〜）、愛犬同伴カフェ
+- **コンセプト**: ペットと飼い主の両方に愛される空間
 
-**🐾 愛犬との散歩がもっと楽しくなる！ WanMapで新しい冒険を始めよう！**
+WanMapを通じて、全国の愛犬家が箱根の魅力的な散歩コースを発見し、DogHubを訪れていただけることを願っています。

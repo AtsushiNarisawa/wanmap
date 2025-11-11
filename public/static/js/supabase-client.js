@@ -175,24 +175,100 @@ async function getRouteById(routeId) {
         distance: 2500,
         duration: 1800,
         path: [[35.2041, 139.0258], [35.2045, 139.0260]],
+        start_point: [35.2041, 139.0258],
+        end_point: [35.2045, 139.0260],
         photos: []
       },
       error: null
     };
   }
   
-  const { data, error } = await supabaseClient
-    .from('routes')
-    .select(`
-      *,
-      profiles:user_id(*),
-      dogs:dog_id(*),
-      route_photos(*)
-    `)
-    .eq('id', routeId)
-    .single();
-  
-  return { data, error };
+  try {
+    // PostGISのGEOGRAPHY型をGeoJSON形式で取得
+    const { data, error } = await supabaseClient
+      .rpc('get_route_with_geojson', { route_id: routeId });
+    
+    if (error) {
+      console.error('RPC関数が見つかりません。代替方法を使用します:', error);
+      
+      // 代替方法: ST_AsGeoJSON関数を使用してデータを取得
+      const { data: rawData, error: rawError } = await supabaseClient
+        .from('routes')
+        .select(`
+          id, title, description, distance, duration, difficulty,
+          like_count, view_count, walked_at, created_at,
+          profiles:user_id(*),
+          dogs:dog_id(*),
+          route_photos(*)
+        `)
+        .eq('id', routeId)
+        .single();
+      
+      if (rawError) return { data: null, error: rawError };
+      
+      // path, start_point, end_pointを別途取得（GeoJSON形式）
+      const { data: geoData, error: geoError } = await supabaseClient
+        .rpc('get_route_geometry', { route_id: routeId });
+      
+      if (geoError) {
+        console.warn('地理データ取得エラー。デフォルト値を使用します:', geoError);
+        // デフォルト値を設定
+        return {
+          data: {
+            ...rawData,
+            path: [[35.2041, 139.0258], [35.2045, 139.0260]],
+            start_point: [35.2041, 139.0258],
+            end_point: [35.2045, 139.0260]
+          },
+          error: null
+        };
+      }
+      
+      // GeoJSON座標をLeaflet形式に変換
+      const pathCoords = geoData.path ? parseGeoJSONCoordinates(geoData.path) : [];
+      const startPoint = geoData.start_point ? parseGeoJSONPoint(geoData.start_point) : null;
+      const endPoint = geoData.end_point ? parseGeoJSONPoint(geoData.end_point) : null;
+      
+      return {
+        data: {
+          ...rawData,
+          path: pathCoords,
+          start_point: startPoint,
+          end_point: endPoint
+        },
+        error: null
+      };
+    }
+    
+    return { data, error: null };
+  } catch (error) {
+    console.error('ルート取得エラー:', error);
+    return { data: null, error };
+  }
+}
+
+// GeoJSON LINESTRINGをLeaflet座標配列に変換
+function parseGeoJSONCoordinates(geojson) {
+  try {
+    const parsed = typeof geojson === 'string' ? JSON.parse(geojson) : geojson;
+    // GeoJSONは [lng, lat] 順、Leafletは [lat, lng] 順
+    return parsed.coordinates.map(coord => [coord[1], coord[0]]);
+  } catch (error) {
+    console.error('GeoJSON解析エラー:', error);
+    return [];
+  }
+}
+
+// GeoJSON POINTをLeaflet座標に変換
+function parseGeoJSONPoint(geojson) {
+  try {
+    const parsed = typeof geojson === 'string' ? JSON.parse(geojson) : geojson;
+    // GeoJSONは [lng, lat] 順、Leafletは [lat, lng] 順
+    return [parsed.coordinates[1], parsed.coordinates[0]];
+  } catch (error) {
+    console.error('GeoJSON解析エラー:', error);
+    return null;
+  }
 }
 
 // ルートを保存

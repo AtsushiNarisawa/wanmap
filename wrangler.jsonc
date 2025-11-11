@@ -6,29 +6,13 @@
   "compatibility_flags": [
     "nodejs_compat"
   ]
-  // "vars": {
-  //   "MY_VAR": "my-variable"
-  // },
-  // "kv_namespaces": [
-  //   {
-  //     "binding": "MY_KV_NAMESPACE",
-  //     "id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-  //   }
-  // ],
+  
+  // R2バケット設定（後で有効化）
+  // R2バケット作成後、以下のコメントを外してください
   // "r2_buckets": [
   //   {
-  //     "binding": "MY_BUCKET",
-  //     "bucket_name": "my-bucket"
+  //     "binding": "PHOTOS",
+  //     "bucket_name": "wanmap-photos"
   //   }
-  // ],
-  // "d1_databases": [
-  //   {
-  //     "binding": "MY_DB",
-  //     "database_name": "my-database",
-  //     "database_id": ""
-  //   }
-  // ],
-  // "ai": {
-  //   "binding": "AI"
-  // }
+  // ]
 }

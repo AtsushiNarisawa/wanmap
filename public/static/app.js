@@ -733,6 +733,104 @@ async function handleLogin() {
   loadView('profile');
 }
 
+// ===== 新規登録モーダル =====
+
+function showSignupForm() {
+  // 既存のモーダルを削除
+  document.querySelector('.fixed')?.remove();
+  
+  const modal = document.createElement('div');
+  modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+  modal.innerHTML = `
+    <div class="bg-white rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <div class="p-6">
+        <h3 class="text-2xl font-bold text-gray-800 mb-6">
+          <i class="fas fa-user-plus text-green-500 mr-2"></i>
+          新規登録
+        </h3>
+        
+        <div id="signupForm" class="space-y-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">メールアドレス *</label>
+            <input type="email" id="signupEmail" 
+                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                   placeholder="your@email.com">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">パスワード *</label>
+            <input type="password" id="signupPassword" 
+                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                   placeholder="8文字以上">
+            <p class="text-xs text-gray-500 mt-1">8文字以上の強力なパスワードを設定してください</p>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">ユーザー名 *</label>
+            <input type="text" id="signupUsername" 
+                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                   placeholder="例: atsushi_doghub">
+            <p class="text-xs text-gray-500 mt-1">半角英数字とアンダースコアのみ</p>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">表示名 *</label>
+            <input type="text" id="signupDisplayName" 
+                   class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                   placeholder="例: 篤志">
+          </div>
+          
+          <button onclick="handleSignup()" 
+                  class="w-full bg-green-500 text-white py-3 rounded-lg font-semibold hover:bg-green-600">
+            登録
+          </button>
+          
+          <p class="text-center text-sm text-gray-600">
+            既にアカウントをお持ちの方は
+            <button onclick="showLoginModal()" class="text-green-500 font-semibold">
+              ログイン
+            </button>
+          </p>
+        </div>
+        
+        <button onclick="this.closest('.fixed').remove()" 
+                class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+          <i class="fas fa-times text-xl"></i>
+        </button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+}
+
+async function handleSignup() {
+  const email = document.getElementById('signupEmail')?.value;
+  const password = document.getElementById('signupPassword')?.value;
+  const username = document.getElementById('signupUsername')?.value;
+  const displayName = document.getElementById('signupDisplayName')?.value;
+  
+  if (!email || !password || !username || !displayName) {
+    alert('すべての項目を入力してください');
+    return;
+  }
+  
+  if (password.length < 8) {
+    alert('パスワードは8文字以上で設定してください');
+    return;
+  }
+  
+  const { data, error } = await signUp(email, password, username, displayName);
+  
+  if (error) {
+    alert('登録に失敗しました: ' + error.message);
+    return;
+  }
+  
+  document.querySelector('.fixed')?.remove();
+  alert('登録メールを送信しました！\n\nメールボックスを確認して、認証リンクをクリックしてください。');
+}
+
 // ===== PWAインストール =====
 
 let deferredPrompt;

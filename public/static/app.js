@@ -705,10 +705,21 @@ async function checkSupabaseStatus() {
 
 // ===== ログインモーダル =====
 
+// モーダルを確実に閉じるヘルパー関数（data-modal属性でモーダルのみを対象）
+function closeAllModals() {
+  const modals = document.querySelectorAll('[data-modal="true"]');
+  console.log('closeAllModals called, found:', modals.length, 'modals');
+  modals.forEach(modal => {
+    console.log('Removing modal:', modal);
+    modal.remove();
+  });
+}
+
 function showLoginModal() {
   const modal = document.createElement('div');
   modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4';
   modal.style.zIndex = '9999';
+  modal.setAttribute('data-modal', 'true');
   modal.innerHTML = `
     <div class="bg-white rounded-lg w-full max-w-md">
       <div class="p-6">
@@ -762,6 +773,7 @@ async function handleLogin() {
   
   if (!email || !password) {
     alert('メールアドレスとパスワードを入力してください');
+    closeAllModals();
     return;
   }
   
@@ -770,21 +782,28 @@ async function handleLogin() {
     
     if (error) {
       alert('ログインに失敗しました: ' + error.message);
+      closeAllModals();
       return;
     }
     
-    // モーダルを閉じる
-    document.querySelector('.fixed')?.remove();
-    
     // ログイン成功
     console.log('ログイン成功:', data);
-    alert('ログインしました！');
+    console.log('モーダルを閉じます...');
+    
+    // モーダルを閉じる
+    closeAllModals();
     
     // ホーム画面に遷移
     loadView('home');
+    
+    // 遷移後にメッセージを表示
+    setTimeout(() => {
+      alert('ログインしました！');
+    }, 300);
   } catch (err) {
     console.error('ログインエラー:', err);
     alert('ログイン処理中にエラーが発生しました');
+    closeAllModals();
   }
 }
 
@@ -792,11 +811,12 @@ async function handleLogin() {
 
 function showSignupForm() {
   // 既存のモーダルを削除
-  document.querySelector('.fixed')?.remove();
+  closeAllModals();
   
   const modal = document.createElement('div');
   modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4';
   modal.style.zIndex = '9999';
+  modal.setAttribute('data-modal', 'true');
   modal.innerHTML = `
     <div class="bg-white rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
       <div class="p-6">
@@ -868,11 +888,13 @@ async function handleSignup() {
   
   if (!email || !password || !username || !displayName) {
     alert('すべての項目を入力してください');
+    closeAllModals();
     return;
   }
   
   if (password.length < 8) {
     alert('パスワードは8文字以上で設定してください');
+    closeAllModals();
     return;
   }
   
@@ -880,10 +902,11 @@ async function handleSignup() {
   
   if (error) {
     alert('登録に失敗しました: ' + error.message);
+    closeAllModals();
     return;
   }
   
-  document.querySelector('.fixed')?.remove();
+  closeAllModals();
   alert('登録メールを送信しました！\n\nメールボックスを確認して、認証リンクをクリックしてください。');
 }
 
